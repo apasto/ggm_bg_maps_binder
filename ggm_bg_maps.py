@@ -40,7 +40,7 @@ XGM_cilm, XGM_gm, XGM_r0 = \
         DATA_DIR / 'XGM2019e_2159.gfc', lmax=SH_lmax_high)
 E2014_cilm, E2014_gm, E2014_r0 = \
     pyshtools.shio.read_icgem_gfc(
-        DATA_DIR / 'dV_ELL_Earth2014_plusGRS80.gfc', lmax=SH_lmax_high)
+        DATA_DIR / 'dV_ELL_Earth2014.gfc', lmax=SH_lmax_high)
 
 # GGM to SHGravCoeffs class
 GOCO06s_coeffs = pyshtools.SHGravCoeffs.from_array(
@@ -53,7 +53,7 @@ XGM_coeffs = pyshtools.SHGravCoeffs.from_array(
     lmax=SH_lmax_high)
 E2014_coeffs = pyshtools.SHGravCoeffs.from_array(
     E2014_cilm, E2014_gm, E2014_r0,
-    omega=pyshtools.constant.omega_wgs84.value,
+    omega=0,
     lmax=SH_lmax_high)
 
 # %% apply gentle-cut low pass of E2014 to sat-resolution grid
@@ -78,73 +78,57 @@ E2014_coeffs_LP_high.coeffs = np.multiply(E2014_coeffs_LP_high.coeffs, LP_weight
 GOCO06s_grid = pyshtools.SHGravCoeffs.expand(
     GOCO06s_coeffs,
     a=GOCO06s_r0, f=pyshtools.constant.f_wgs84.value,
-    extend=False, lmax=SH_lmax_grid)
+    extend=False, lmax=SH_lmax_grid, normal_gravity=True)
 GOCO06s_grid_gd = pyshtools.SHGrid.from_array(GOCO06s_grid.total.data*1e5)
 XGM_grid = pyshtools.SHGravCoeffs.expand(
     XGM_coeffs_LP,
     a=XGM_r0, f=pyshtools.constant.f_wgs84.value,
-    extend=False, lmax=SH_lmax_high)
+    extend=False, lmax=SH_lmax_high, normal_gravity=True)
 XGM_grid_gd = pyshtools.SHGrid.from_array(XGM_grid.total.data*1e5)
 E2014_grid = pyshtools.SHGravCoeffs.expand(
     E2014_coeffs_LP_high,
     a=E2014_r0, f=pyshtools.constant.f_wgs84.value,
-    extend=False, lmax=SH_lmax_high)
-E2014_grid_total = pyshtools.SHGrid.from_array(E2014_grid.total.data*1e5)
+    extend=False, lmax=SH_lmax_high, normal_gravity=False)
+E2014_grid_rad = pyshtools.SHGrid.from_array(E2014_grid.rad.data * -1e5)  # to mGal and positive downwards
 E2014_grid_low = pyshtools.SHGravCoeffs.expand(
     E2014_coeffs_LP,
     a=E2014_r0, f=pyshtools.constant.f_wgs84.value,
-    extend=False, lmax=SH_lmax_grid)
-E2014_grid_low_total = pyshtools.SHGrid.from_array(E2014_grid_low.total.data*1e5)
+    extend=False, lmax=SH_lmax_grid, normal_gravity=False)
+E2014_grid_low_rad = pyshtools.SHGrid.from_array(E2014_grid_low.rad.data * -1e5)  # to mGal and positive downwards
 
-# %% normal gravity
-# NormalGravity_vectorized = np.vectorize(pyshtools.gravmag.NormalGravity)
-# lat_vector = \
-#     np.flip(np.arange(
-#         -90.0+grid_step, 90.0+grid_step, grid_step), 0)  # 90+GridStep needed to stop at 90
-# lat_vector_high = \
-#     np.flip(np.arange(
-#         -90.0+grid_step_high, 90.0+grid_step_high, grid_step_high), 0)  # 90+GridStep needed to stop at 90
-# normal_gravity_vector = NormalGravity_vectorized(lat_vector,
-#                                                  gm=XGM_gm, omega=pyshtools.constant.omega_wgs84.value,
-#                                                  a=pyshtools.constant.a_wgs84.value,
-#                                                  b=pyshtools.constant.b_wgs84.value) * 1e5  # mGal
-# normal_gravity_vector_high = NormalGravity_vectorized(lat_vector_high,
-#                                                       gm=XGM_gm, omega=pyshtools.constant.omega_wgs84.value,
-#                                                       a=pyshtools.constant.a_wgs84.value,
-#                                                       b=pyshtools.constant.b_wgs84.value) * 1e5  # mGal
-#
-# normal_gravity_array = (np.transpose(
-#     np.broadcast_to(
-#         normal_gravity_vector,
-#         np.flipud(GOCO06s_grid_gd.data.shape))))
-#
-# normal_gravity_array_high = (np.transpose(
-#     np.broadcast_to(
-#         normal_gravity_vector_high,
-#         np.flipud(XGM_grid_gd.data.shape))))
+# %% apply terrain correction 'the proper way'
+# perform difference of potential (adimensional) grid, then expand to SH coefficients, then to gravity grids
+# normal gravity is removed after applying the reduction
+# (potential issue: what if gm and r0 are different between GGM and terrain effect model?)
 
-# %% apply E2014 correction
-# magnitude of vector difference
-# maybe not the proper way: assuming normal gravity present in both sides?
-# proper way: remove magnitude of normal gravity afterwards
-GOCO06s_grid_bg = pyshtools.SHGrid.from_array(
-    np.sqrt(
-        np.power((GOCO06s_grid.rad.data - E2014_grid_low.rad.data)*1e5, 2) +
-        np.power((GOCO06s_grid.theta.data - E2014_grid_low.theta.data)*1e5, 2) +
-        np.power((GOCO06s_grid.phi.data - E2014_grid_low.phi.data)*1e5, 2)
-    ))
+# GOCO06s, low SH degrees
+GOCO06s_PotGrid_adim = (pyshtools.SHCoeffs.from_array(GOCO06s_cilm)).expand()
+E2014_PotGrid_adim_low = (pyshtools.SHCoeffs.from_array(E2014_cilm)).expand(lmax=GOCO06s_PotGrid_adim.lmax)
+GOCO06s_Vbg_Coeffs = (pyshtools.SHGrid.from_array(GOCO06s_PotGrid_adim.data - E2014_PotGrid_adim_low.data)).expand()
+GOCO06s_Vbg_GravCoeffs = pyshtools.SHGravCoeffs.from_array(GOCO06s_Vbg_Coeffs.coeffs,
+                                                           gm=GOCO06s_gm, r0=GOCO06s_r0,
+                                                           omega=pyshtools.constant.omega_wgs84.value)
+GOCO06s_Vbg_GravGrid = GOCO06s_Vbg_GravCoeffs.expand(normal_gravity=True,
+                                                     a=GOCO06s_r0, f=pyshtools.constant.f_wgs84.value)
+GOCO06s_Vbg_GravGrid_total = pyshtools.SHGrid.from_array(GOCO06s_Vbg_GravGrid.total.data * 1e5)
 
-XGM_grid_bg = pyshtools.SHGrid.from_array(
-    np.sqrt(
-        np.power((XGM_grid.rad.data - E2014_grid.rad.data)*1e5, 2) +
-        np.power((XGM_grid.theta.data - E2014_grid.theta.data)*1e5, 2) +
-        np.power((XGM_grid.phi.data - E2014_grid.phi.data)*1e5, 2)
-    ))
+# XGM2019, high SH degrees
+XGM_PotGrid_adim = (pyshtools.SHCoeffs.from_array(XGM_cilm)).expand()
+E2014_PotGrid_adim = (pyshtools.SHCoeffs.from_array(E2014_cilm)).expand(lmax=XGM_PotGrid_adim.lmax)
+XGM_Vbg_Coeffs = (pyshtools.SHGrid.from_array(XGM_PotGrid_adim.data - E2014_PotGrid_adim.data)).expand()
+XGM_Vbg_GravCoeffs = pyshtools.SHGravCoeffs.from_array(XGM_Vbg_Coeffs.coeffs,
+                                                       gm=XGM_gm, r0=XGM_r0,
+                                                       omega=pyshtools.constant.omega_wgs84.value)
+XGM_Vbg_GravGrid = XGM_Vbg_GravCoeffs.expand(normal_gravity=True,
+                                              a=XGM_r0, f=pyshtools.constant.f_wgs84.value)
+XGM_Vbg_GravGrid_total = pyshtools.SHGrid.from_array(XGM_Vbg_GravGrid.total.data * 1e5)
 
 # %% plot maps (global)
-cmap_gd_range = [-120, 120]  # fixed
-cmap_tc_range = [np.quantile(E2014_grid_total.data, 0.1), np.quantile(E2014_grid_total.data, 0.9)]
-cmap_bg_range = [np.quantile(GOCO06s_grid_bg.data, 0.01), np.quantile(GOCO06s_grid_bg.data, 0.99)]
+cmap_gd_range = [-120, 120]  # fixed, to do: symmetric, largest value
+cmap_tc_range = [np.quantile(E2014_grid_low_rad.data, 0.0001),
+                 np.quantile(E2014_grid_low_rad.data, 0.9999)]
+cmap_bg_range = [np.quantile(GOCO06s_Vbg_GravGrid_total.data, 0.001),
+                 np.quantile(GOCO06s_Vbg_GravGrid_total.data, 0.999)]
 
 gd_cpt_filename = str(FIG_DIR / 'ggm_gd.cpt')
 tc_cpt_filename = str(FIG_DIR / 'ggm_tc.cpt')
@@ -181,7 +165,7 @@ XGM_grid_gd_map.coast(D='i', W='1/faint', t=50)
 XGM_grid_gd_map.basemap(B='0g15', t='75')
 XGM_grid_gd_map.savefig(FIG_DIR / 'XGM2019_2159_GD.png', dpi=FigDPI)
 
-E2014_grid_mag_map = E2014_grid_total.plotgmt(
+E2014_grid_rad_map = E2014_grid_rad.plotgmt(
     projection=GMTMapProjection,
     region=GMTMapRegion,
     grid=[0, 0], tick_interval=[0, 0], ticks='wesn',
@@ -190,12 +174,12 @@ E2014_grid_mag_map = E2014_grid_total.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_tc_range,
     cb_triangles='both',
-    cb_label='|terrain effect| [mGal]')
-E2014_grid_mag_map.coast(D='i', W='1/faint', t=50)
-E2014_grid_mag_map.basemap(B='0g15', t='75')
-E2014_grid_mag_map.savefig(FIG_DIR / 'E2014_2159_mag.png', dpi=FigDPI)
+    cb_label='terrain effect, radial [mGal]')
+E2014_grid_rad_map.coast(D='i', W='1/faint', t=50)
+E2014_grid_rad_map.basemap(B='0g15', t='75')
+E2014_grid_rad_map.savefig(FIG_DIR / 'E2014_2159_rad.png', dpi=FigDPI)
 
-E2014_grid_low_mag_map = E2014_grid_low_total.plotgmt(
+E2014_grid_low_rad_map = E2014_grid_low_rad.plotgmt(
     projection=GMTMapProjection,
     region=GMTMapRegion,
     grid=[0, 0], tick_interval=[0, 0], ticks='wesn',
@@ -204,12 +188,12 @@ E2014_grid_low_mag_map = E2014_grid_low_total.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_tc_range,
     cb_triangles='both',
-    cb_label='|terrain effect| [mGal]')
-E2014_grid_low_mag_map.coast(D='i', W='1/faint', t=50)
-E2014_grid_low_mag_map.basemap(B='0g15', t='75')
-E2014_grid_low_mag_map.savefig(FIG_DIR / 'E2014_300_mag.png', dpi=FigDPI)
+    cb_label='terrain effect, radial [mGal]')
+E2014_grid_low_rad_map.coast(D='i', W='1/faint', t=50)
+E2014_grid_low_rad_map.basemap(B='0g15', t='75')
+E2014_grid_low_rad_map.savefig(FIG_DIR / 'E2014_300_rad.png', dpi=FigDPI)
 
-GOCO06s_grid_bg_map = GOCO06s_grid_bg.plotgmt(
+GOCO06s_grid_bg_map = GOCO06s_Vbg_GravGrid_total.plotgmt(
     projection=GMTMapProjection,
     region=GMTMapRegion,
     grid=[0, 0], tick_interval=[0, 0], ticks='wesn',
@@ -218,12 +202,12 @@ GOCO06s_grid_bg_map = GOCO06s_grid_bg.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_bg_range,
     cb_triangles='both',
-    cb_label='Bouguer anomaly [mGal]')
+    cb_label='Bouguer disturbance [mGal]')
 GOCO06s_grid_bg_map.coast(D='i', W='1/faint', t=50)
 GOCO06s_grid_bg_map.basemap(B='0g15', t='75')
 GOCO06s_grid_bg_map.savefig(FIG_DIR / 'GOCO06_300_BG.png', dpi=FigDPI)
 
-XGM_grid_bg_map = XGM_grid_bg.plotgmt(
+XGM_grid_bg_map = XGM_Vbg_GravGrid_total.plotgmt(
     projection=GMTMapProjection,
     region=GMTMapRegion,
     grid=[0, 0], tick_interval=[0, 0], ticks='wesn',
@@ -232,7 +216,7 @@ XGM_grid_bg_map = XGM_grid_bg.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_bg_range,
     cb_triangles='both',
-    cb_label='Bouguer anomaly [mGal]')
+    cb_label='Bouguer disturbance [mGal]')
 XGM_grid_bg_map.coast(D='i', W='1/faint', t=50)
 XGM_grid_bg_map.basemap(B='0g15', t='75')
 XGM_grid_bg_map.savefig(FIG_DIR / 'XGM2019_2159_BG.png', dpi=FigDPI)
@@ -241,12 +225,12 @@ XGM_grid_bg_map.savefig(FIG_DIR / 'XGM2019_2159_BG.png', dpi=FigDPI)
 EuropeZoom_extents = [0, 30, 30, 60]  # [West, East, South, North], region option of SHGrid.plotgmt()
 EuropeZoom_central_latitude = (EuropeZoom_extents[3]+EuropeZoom_extents[2])/2
 EuropeZoom_central_longitude = (EuropeZoom_extents[0]+EuropeZoom_extents[1])/2
-cmap_bg_EuropeZoom_range = [40, 380]
+cmap_bg_EuropeZoom_range = [-80, 380]
 bg_EuropeZoom_cpt_filename = str(FIG_DIR / 'ggm_bg.cpt')
 pygmt.makecpt(series=cmap_bg_EuropeZoom_range, cmap='haxby', reverse=False, continuous=True,
               D='o', H=bg_EuropeZoom_cpt_filename)
 
-GOCO06s_grid_bg_map_EuropeZoom = GOCO06s_grid_bg.plotgmt(
+GOCO06s_grid_bg_map_EuropeZoom = GOCO06s_Vbg_GravGrid_total.plotgmt(
     projection='CYLindrical-stereographic',
     central_latitude=EuropeZoom_central_latitude,
     central_longitude=EuropeZoom_central_longitude,
@@ -257,13 +241,13 @@ GOCO06s_grid_bg_map_EuropeZoom = GOCO06s_grid_bg.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_bg_EuropeZoom_range,
     cb_triangles='both',
-    cb_label='Bouguer anomaly [mGal]')
+    cb_label='Bouguer disturbance [mGal]')
 GOCO06s_grid_bg_map_EuropeZoom.coast(D='i', W='1/thin', t=50)
 GOCO06s_grid_bg_map_EuropeZoom.basemap(B='0g5', t='50')
 GOCO06s_grid_bg_map_EuropeZoom.basemap(B=['5g0', 'WesN'])
 GOCO06s_grid_bg_map_EuropeZoom.savefig(FIG_DIR / 'EuropeZoom_GOCO06_300_BG.png', dpi=FigDPI)
 
-XGM_grid_bg_map_EuropeZoom = XGM_grid_bg.plotgmt(
+XGM_grid_bg_map_EuropeZoom = XGM_Vbg_GravGrid_total.plotgmt(
     projection='CYLindrical-stereographic',
     central_latitude=EuropeZoom_central_latitude,
     central_longitude=EuropeZoom_central_longitude,
@@ -274,7 +258,7 @@ XGM_grid_bg_map_EuropeZoom = XGM_grid_bg.plotgmt(
     cmap_continuous=True,
     cmap_limits=cmap_bg_EuropeZoom_range,
     cb_triangles='both',
-    cb_label='Bouguer anomaly [mGal]')
+    cb_label='Bouguer disturbance [mGal]')
 XGM_grid_bg_map_EuropeZoom.coast(D='i', W='1/thin', t=50)
 XGM_grid_bg_map_EuropeZoom.basemap(B='0g5', t='50')
 XGM_grid_bg_map_EuropeZoom.basemap(B=['5g0', 'WesN'])

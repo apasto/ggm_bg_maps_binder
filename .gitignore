@@ -1,5 +1,5 @@
-# config file with paths to storage
-DataPaths.cfg
+# SH coefficients files
+*.gfc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

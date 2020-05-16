@@ -29,7 +29,7 @@ FIG_DIR = STORAGE_DIR / "OutFig/FastGGM_20200508/"
 # %% load GGM gfc
 SH_lmax_GOCO06s = 300
 grid_step = 0.25
-SH_lmax_grid = int(90/grid_step - 1)  # to get a grid_step spaced grid
+SH_lmax_grid = int(90/grid_step - 1)  # max degree to get a grid_step spaced grid
 GOCO06s_cilm, GOCO06s_gm, GOCO06s_r0 = \
     pyshtools.shio.read_icgem_gfc(
         DATA_DIR / '../OutFig/GOCO06s.gfc', lmax=SH_lmax_GOCO06s)

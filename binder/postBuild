@@ -6,5 +6,6 @@ wget -q -O "XGM2019e_760.zip" "http://icgem.gfz-potsdam.de/getmodel/zip/38f8a3ef
 wget -q -O "dV_ELL_Earth2014_2190.zip" "http://icgem.gfz-potsdam.de/getmodel/zip/096efe2948d9ba60d7f4ec27dee370f2af556988a4116179de70133df79a2a2a"
 # unzip: should use zipinfo (or unzip -Z) to assess the zip contents, instead of assuming filenames here
 unzip "XGM2019e_760.zip" # provides XGM2019.gfc
+rm XGM2019e_760.zip
 unzip "dV_ELL_Earth2014_2190.zip" # provides dV_ELL_Earth2014.gfc
- 
+rm dV_ELL_Earth2014_2190.zip

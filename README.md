@@ -18,7 +18,7 @@ This notebook was set up with the following gravity models in mind, their SH coe
 
 * Topographic effect model: **dV_ELL_Earth2014**, Rexer, M., Hirt, C., Claessens, S., Tenzer, R. (2016): Layer-based modelling of the Earth's gravitational potential up to 10km-scale in spherical harmonics in spherical and ellipsoidal approximation. *Surveys in Geophysics*. [doi:10.1007/s10712-016-9382-2](https://doi.org/10.1007/s10712-016-9382-2).
 
-When run in Binder, these two models are downloaded and unzipped after the container is built, using the [`PostBuild`](./binder/postBuild) script provided this git repository.
+When run in Binder, these two models are downloaded and unzipped after the container is built, using the [`PostBuild`](./binder/postBuild) script provided in this repository.
 If run locally, `PostBuild` must be run beforehand and the downloaded files moved accordingly (or the argument of `read_icgem_gfc` edited with the correct path).
 The code below should work with any other combination of models with a maximum SH degree equal or greater than the maximum SH degree of the required grid. Otherwise, zero-padding the missing high degrees is needed.
 Note that the topographic effect model used in the example does not include the normal potential.
@@ -30,3 +30,7 @@ Apart from this, for this purposes, any other issue was deemed of secondary impo
 
 There are some maps of the tensor (2nd derivative of the topography-reduced disturbing potential), at the notebook far end.
 They were done out of curiosity, the same disclaimer applies.
+
+#### License
+The contents of this repository is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
+The coefficients of the cited models are downloaded at build time, no part of them being stored in this repository.

@@ -10,7 +10,7 @@ The notebook in this repository presents a *topography-reduced gravity disturban
 
 It was set up to try SHTOOLS out of curiosity, to get familiar with Jupyter notebooks and their deployment on Binder, and, after a good deal of trial and error, to successfully compute a Bouguer disturbance, which *should* be a trivial task. The operation is defined in Eq. 33 of ICGEM report [STR09/02](https://doi.org/10.2312/GFZ.b103-0902-26).
 
-To keep the notebook lean, the default parameters in the example result in a computation at (relatively) low degrees. The $l_max$ of the used coefficients is set to 719, then the grid is oversampled twice to d/o 1439 (resulting in a 0.0625 deg grid).
+To keep the notebook lean, the default parameters in the example result in a computation at (relatively) low degrees. The maximum degree read from the SH coefficients is set to 719, then the grid is oversampled twice to d/o 1439 (resulting in a 0.0625 deg grid).
 The truncation degree may be less than the complete spectral content of the models involved, therefore a re-implementation of the gentle-cut truncation proposed by [Barthelmes (2008)](http://icgem.gfz-potsdam.de/gentlecut_engl.pdf) is included in the [`shtaper`](./shtaper.py) module.
 It is successful in avoiding sidelobes/ringing.
 

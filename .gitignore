@@ -1,5 +1,9 @@
 # SH coefficients files
 *.gfc
+# saved data (netcdf format)
+*.nc
+# nano (text editor) temp file, while file are opened
+*.swp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

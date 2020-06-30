@@ -2,6 +2,7 @@
 
 [![nbviewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](https://nbviewer.jupyter.org/github/apasto/ggm_bg_maps_binder/blob/master/ggm_bg.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/apasto/ggm_bg_maps_binder/master?filepath=ggm_bg.ipynb)
+[![Zenodo DOI](https://zenodo.org/badge/263948744.svg)](https://zenodo.org/badge/latestdoi/263948744)
 
 ![Global map of the computed topography-reduced gravity disturbance](./readme_figures/bg_gd.png)
 

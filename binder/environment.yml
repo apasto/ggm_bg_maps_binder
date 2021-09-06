@@ -1,4 +1,4 @@
-name: shtools_minimal
+name: ggm_bg_maps_binder
 channels:
   - conda-forge
   - defaults

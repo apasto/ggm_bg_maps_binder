@@ -20,7 +20,6 @@ def main():
 
 def taper_weights(l_start, l_stop, l_max=None, taper='gentle'):
     """Compute SH tapering coefficients according to a linear or gentle-cut (Barthelmes, 2008) tapering.
-
     :param l_start: SH degree where tapering starts
     :param l_stop: SH degree where tapering stops
     :param l_max: maximum SH degree,
@@ -36,34 +35,55 @@ def taper_weights(l_start, l_stop, l_max=None, taper='gentle'):
     :rtype: numpy.ndarray
     """
     if not(taper == 'linear' or taper == 'gentle'):
-        raise AssertionError("taper must be either 'linear' or 'gentle', if provided")
+        raise AssertionError(
+            "taper must be either 'linear' or 'gentle', if provided")
 
     if l_max is None:
         l_max = l_stop
     elif l_max < l_stop:
         raise AssertionError(
-            "l_stop (" + str(l_stop) + ") must be less than or equal to l_max (" + str(l_max) + ")")
+            "l_stop ("
+            + str(l_stop)
+            + ") must be less than or equal to l_max ("
+            + str(l_max)
+            + ")")
 
     # first compute the weights l-degree wise, then broadcast to all m-orders and (c,i)
-    # this implies that we populate weights even outside the SH coefficients 'triangle' - not an issue
+    # this implies that we populate weights even outside the SH coefficients
+    # 'triangle' - not an issue
     weights_lwise = numpy.ones(l_max + 1)
 
     if taper == 'linear':
-        weights_lwise[l_start:l_stop+1] = numpy.linspace(1, 0, (l_stop - l_start + 1))
+        weights_lwise[l_start:l_stop
+                      + 1] = numpy.linspace(1, 0, (l_stop - l_start + 1))
     elif taper == 'gentle':
         lg = numpy.linspace(l_start, l_stop, (l_stop - l_start + 1)) - l_start
-        weights_lwise[l_start:l_stop+1] = \
-            numpy.power(lg/(l_stop - l_start), 4) - 2*numpy.square(lg/(l_stop - l_start)) + 1
+        weights_lwise[l_start:l_stop + 1] = numpy.power(
+            lg / (l_stop - l_start), 4) - 2 * numpy.square(lg / (l_stop - l_start)) + 1
 
     if l_max > l_stop:
-        weights_lwise[l_stop+1:] = numpy.zeros(l_max - (l_stop+1) + 1)
+        weights_lwise[l_stop + 1:] = numpy.zeros(l_max - (l_stop + 1) + 1)
 
     # from l-degree wise vector to 'ci,l,m' shape : (2, l_max+1, l_max+1)
     # reshape is required to obtain l-wise tapering, not m-wise!
-    weights = numpy.broadcast_to(
-        numpy.reshape(weights_lwise, [weights_lwise.shape[0], 1]),
-        [2, l_max+1, l_max+1])
+    weights = broadcast_to_cilm(weights_lwise)
     return weights
+
+
+def broadcast_to_cilm(weights_lwise):
+    """ Broadcast a l-degree-wise vector to 'ci,l,m' shape : (2, l_max+1, l_max+1)
+    The call to reshape is required to obtain l-wise tapering, not m-wise!
+    :param weights: l_max+1 long vector of degree wise weights
+    :type weights: numpy.ndarray
+    :return: an array of weights, shape is 'ci,l,m' : (2, l_max+1, l_max+1),
+        which can be multiplied element-wise to SH coefficients
+    :rtype: numpy.ndarray
+    """
+    # note that weights_lwise.shape[0] == l_max + 1
+    weights_cilm = numpy.broadcast_to(
+        numpy.reshape(weights_lwise, [weights_lwise.shape[0], 1]),
+        [2, weights_lwise.shape[0], weights_lwise.shape[0]])
+    return weights_cilm
 
 
 if __name__ == '__main__':

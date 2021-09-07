@@ -1,4 +1,4 @@
-# "Global Bouguer" using global SH models and SHTOOLS
+# Compute a _Global Bouguer Disturbance_ using SH global gravity models and SHTOOLS
 
 [![nbviewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](https://nbviewer.jupyter.org/github/apasto/ggm_bg_maps_binder/blob/master/ggm_bg.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/apasto/ggm_bg_maps_binder/master?filepath=ggm_bg.ipynb)

@@ -221,9 +221,10 @@ _ = Tbg_grid.plot_total(show=False,
                         cmap='Spectral',
                         projection=projection,
                         cmap_limits=[  # data in property is in m/s^2, convert
-                            np.quantile(Tbg_grid.total.data * 1e5, 0.003),
-                            np.quantile(Tbg_grid.total.data * 1e5, 0.997)
-                        ], cb_triangles="both",)
+                            np.quantile(Tbg_grid.total.data * 1e5, 0.001),
+                            np.quantile(Tbg_grid.total.data * 1e5, 0.999)
+                        ], cb_triangles="both",
+                        fname="./readme_figures/bg_gd.png")
 
 # %% [markdown]
 # ## Save to file, for further use

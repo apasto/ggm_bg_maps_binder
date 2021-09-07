@@ -2,10 +2,13 @@
 # wget the required models, from ICGEM
 # to preserve bandwidth: get the zip, then unzip
 set -e # do not silence errors (see https://repo2docker.readthedocs.io/en/latest/config_files.html#postbuild)
-wget -q -O "XGM2019e_760.zip" "http://icgem.gfz-potsdam.de/getmodel/zip/38f8a3efe050bab49acaa41f9624e564d5288260188b6511a063597efaa4dc99"
-wget -q -O "dV_ELL_Earth2014_2190.zip" "http://icgem.gfz-potsdam.de/getmodel/zip/096efe2948d9ba60d7f4ec27dee370f2af556988a4116179de70133df79a2a2a"
+XGM_zip_filename='XGM2019e_2159.zip'
+E2014_zip_filename='dv_ELL_Earth2014_2190.zip'
+#wget -q -O "XGM2019e_760.zip" "http://icgem.gfz-potsdam.de/getmodel/zip/38f8a3efe050bab49acaa41f9624e564d5288260188b6511a063597efaa4dc99"
+wget -q -O ${XGM_zip_filename} "http://icgem.gfz-potsdam.de/getmodel/zip/eeb03971cf6e533e6eeb6b010336463286dcda0846684248d5530acf8e800055/XGM2019e_2159.zip"
+wget -q -O ${E2014_zip_filename} "http://icgem.gfz-potsdam.de/getmodel/zip/096efe2948d9ba60d7f4ec27dee370f2af556988a4116179de70133df79a2a2a"
 # unzip: should use zipinfo (or unzip -Z) to assess the zip contents, instead of assuming filenames here
-unzip "XGM2019e_760.zip" # provides XGM2019.gfc
-rm XGM2019e_760.zip
-unzip "dV_ELL_Earth2014_2190.zip" # provides dV_ELL_Earth2014.gfc
-rm dV_ELL_Earth2014_2190.zip
+unzip ${XGM_zip_filename} # provides XGM2019e_2159.gfc
+rm ${XGM_zip_filename}
+unzip ${E2014_zip_filename} # provides dV_ELL_Earth2014.gfc
+rm ${E2014_zip_filename}

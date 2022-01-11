@@ -9,7 +9,7 @@
 
 The [`ggm_bg.ipynb`](./ggm_bg.ipynb) Jupyter Notebook in this repository presents a procedure to obtain a global map of the *topography-reduced gravity disturbance* (or *complete Bouguer disturbance*, or *No Ellipsoidal Topography of Constant density (NETC) disturbance*), starting from the spherical harmonics coefficients of a global gravity field model and a synthetic model of the gravity effect of topography, ice, and water.  It relies on [SHTOOLS](https://shtools.oca.eu/shtools/public/) (Wieczorek and Meschede, 2018, [doi:10.1029/2018GC007529](https://doi.org/10.1029/2018GC007529)), using _pyshtools_ functions and classes ([link to documentation](https://shtools.github.io/SHTOOLS/index.html)).
 
-It was set up to try SHTOOLS out of curiosity, to get familiar with Jupyter notebooks and their deployment on Binder, and, to successfully compute a Bouguer disturbance using global gravity models, which *should* be a trivial task. The operation is defined in Eq. 33 of ICGEM report [STR09/02](https://doi.org/10.2312/GFZ.b103-0902-26).
+It was set up to try SHTOOLS out of curiosity, to get familiar with Jupyter notebooks and their deployment on Binder, and, to successfully compute a Bouguer disturbance using global gravity models, which *should* be a trivial task. The operation which we perform here follows the definition in Eq. 33 of ICGEM report [STR09/02](https://doi.org/10.2312/GFZ.b103-0902-26).
 
 This notebook was set up with the following gravity models, downloaded in the gfc format from [ICGEM](http://icgem.gfz-potsdam.de/home):
 

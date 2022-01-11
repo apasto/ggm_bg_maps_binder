@@ -28,6 +28,10 @@ Keep in mind that this example deals with computing a *topography-reduced gravit
 Its aim is keeping formal consistency in the computation - a trivial task, albeit prone to errors.
 Apart from this, for this purposes, any other issue was deemed of secondary importance (to a reasonable extent). Thus I must warn against using the 'Bouguer disturbance' here obtained in any application.
 
+#### In action
+
+A derived version of this procedure and plots, adapted for the purpose, was used in Fig. 7 of the "Gravity" entry by Braitenberg C. in [Encyclopedia of geology](https://www.sciencedirect.com/referencework/9780081029091/encyclopedia-of-geology) (2nd ed., Vol. 1, pp. 706-718, Elias, S. A., & Alderton, D. H. M., editors).
+
 #### License
 The contents of this repository is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
 The coefficients of the cited models are downloaded at build time, no part of them being stored in this repository.
